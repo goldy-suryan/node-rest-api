@@ -2,10 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const logger = require('morgan');
+const mongoose = require('mongoose');
 const app = express();
 const port = process.env.PORT || 3001;
 const productRoute = require('./src/routes/productRoute');
 const orderRoute = require('./src/routes/orderRoute');
+
+// Database Connection
+mongoose.connect('mongodb://localhost:27017/node-shop-app', { useNewUrlParser: true });
 
 // Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
@@ -40,7 +44,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
     res.status(err.status || 500).json({
         error: {
-            message: error.message
+            message: err.message
         }
     })
 })
