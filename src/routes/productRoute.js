@@ -5,10 +5,10 @@ const Product = require('../model/product');
 
 // Getting all products
 router.get('/', (req, res) => {
-    Product.find({}, (err, products) => {
+    Product.find({}, 'name price', (err, products) => {
         if (err) {
             res.status(500).json({
-                message: err
+                error: err
             });
         } else if (!products.length) {
             res.status(200).json({
@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
     Product.findOne({ name: req.body.name }, (err, result) => {
         if (err) {
             res.status(500).json({
-                message: err
+                error: err
             });
         } else if (result) {
             res.status(400).json({
@@ -39,11 +39,12 @@ router.post('/', (req, res) => {
             product.save((err, result) => {
                 if (err) {
                     res.status(500).json({
-                        message: err
+                        error: err
                     });
                 } else {
                     res.status(201).json({
-                        result, message: 'Product created successfully'
+                        data: result,
+                        message: 'Product created successfully'
                     });
                 }
             });
@@ -54,14 +55,14 @@ router.post('/', (req, res) => {
 // Getting single product
 router.get('/:productId', (req, res) => {
     const id = req.params.productId;
-    Product.findById(id, (err, product) => {
+    Product.findById(id, 'name price', (err, product) => {
         if (err) {
             res.status(500).json({
-                message: err
+                error: err
             });
         } else if (!product) {
             res.status(404).json({
-                message: 'There are no products to show'
+                message: 'There are no products to show for provided ID'
             });
         } else {
             res.status(200).json(product);
@@ -76,10 +77,10 @@ router.patch('/:productId', (req, res) => {
     for (let key of Object.keys(req.body)) {
         updateOps[key] = req.body[key];
     }
-    Product.findByIdAndUpdate(id, updateOps, (err, updatedProduct) => {
+    Product.findByIdAndUpdate(id, { $set: updateOps }, (err, updatedProduct) => {
         if (err) {
             res.status(500).json({
-                message: err
+                error: err
             });
         } else if (!updatedProduct) {
             res.status(404).json({
@@ -99,7 +100,7 @@ router.delete('/:productId', (req, res) => {
     Product.findByIdAndRemove(id, (err, response) => {
         if (err) {
             res.status(200).json({
-                message: err
+                error: err
             });
         } else if (!response) {
             res.status(404).json({
