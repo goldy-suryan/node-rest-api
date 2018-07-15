@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const Product = require('../model/product');
+const verifyAuth = require('../auth/verify-auth');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads/');
@@ -43,7 +44,7 @@ router.get('/', (req, res) => {
 });
 
 // Creating a product
-router.post('/', upload.single('productImage'), (req, res) => {
+router.post('/', verifyAuth, upload.single('productImage'), (req, res) => {
     Product.findOne({ name: req.body.name }, (err, result) => {
         if (err) {
             res.status(500).json({
@@ -97,7 +98,7 @@ router.get('/:productId', (req, res) => {
 });
 
 // Updating a product
-router.patch('/:productId', (req, res) => {
+router.patch('/:productId', verifyAuth, (req, res) => {
     const id = req.params.productId;
     const updateOps = {};
     for (let key of Object.keys(req.body)) {
@@ -121,7 +122,7 @@ router.patch('/:productId', (req, res) => {
 });
 
 // Deleting a product
-router.delete('/:productId', (req, res) => {
+router.delete('/:productId', verifyAuth, (req, res) => {
     const id = req.params.productId;
     Product.findByIdAndRemove(id, (err, response) => {
         if (err) {

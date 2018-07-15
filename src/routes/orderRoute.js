@@ -1,102 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const Order = require('../model/order');
+const verifyAuth = require('../auth/verify-auth');
+const orders = require('../controllers/order')
 
-router.get('/', (req, res) => {
-    Order.find({})
-        .select('-__v')
-        .populate('productId', '-__v') //populating orderSchema field productId
-        .exec((err, result) => {
-            if (err) {
-                res.status(500).json({
-                    error: err
-                });
-            } else if (!result) {
-                res.status(200).json({
-                    message: 'No order placed till yet, place some order'
-                });
-            } else {
-                res.status(200).json({
-                    result,
-                    count: result.map(() => {
-                        return result.length
-                    })[0]
-                });
-            }
-        });
-});
+router.get('/', verifyAuth, orders.getAllOrders);
 
-router.post('/', (req, res) => {
-    const order = new Order();
-    order.productId = req.body.productId;
-    if (req.body.quantity) {
-        order.quantity = req.body.quantity;
-    }
+router.post('/', verifyAuth, orders.postOrder);
 
-    Order.find({ productId: order.productId }, (err, response) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (response.length) {
-            res.status(400).json({
-                message: 'product is already been placed with this order'
-            });
-        } else {
-            order.save((err, result) => {
-                if (err) {
-                    res.status(500).json({
-                        error: err
-                    });
-                } else {
-                    res.status(201).json({
-                        message: 'order placed successfully',
-                        data: result
-                    });
-                }
-            });
-        }
-    })
-});
+router.get('/:orderId', verifyAuth, orders.getOneOrder);
 
-router.get('/:orderId', (req, res) => {
-    const id = req.params.orderId;
-    Order.findById(id)
-        .select('-__v')
-        .populate('productId', '-__v')
-        .exec((err, response) => {
-            if (err) {
-                res.status(500).json({
-                    error: err
-                });
-            } else if (!response) {
-                res.status(404).json({
-                    message: 'No order placed with this Id'
-                });
-            } else {
-                res.status(200).json(response);
-            }
-        });
-});
-
-router.delete('/:orderId', (req, res) => {
-    const id = req.params.orderId;
-    Order.findByIdAndRemove(id, (err, response) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (!response) {
-            res.status(404).json({
-                message: 'Unable to find the order'
-            });
-        } else {
-            res.status(200).json({
-                message: 'Order deleted successfully',
-                data: response
-            })
-        }
-    });
-});
+router.delete('/:orderId', verifyAuth, orders.deleteAnOrder);
 
 module.exports = router;
