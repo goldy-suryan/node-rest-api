@@ -1,11 +1,33 @@
 const express = require('express');
 const router = express.Router();
-
+const multer = require('multer');
 const Product = require('../model/product');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+const fileFilter = (req, file, cb) => { // function to store particular type of files passed to the upload variable
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    } else {
+        cb(new Error('Can only upload jpg or png files'), false);
+    }
+}
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5  // stores upto 5Mb
+    },
+    fileFilter
+});
 
 // Getting all products
 router.get('/', (req, res) => {
-    Product.find({}, 'name price', (err, products) => {
+    Product.find({}, '-__v', (err, products) => {
         if (err) {
             res.status(500).json({
                 error: err
@@ -21,20 +43,24 @@ router.get('/', (req, res) => {
 });
 
 // Creating a product
-router.post('/', (req, res) => {
+router.post('/', upload.single('productImage'), (req, res) => {
     Product.findOne({ name: req.body.name }, (err, result) => {
         if (err) {
             res.status(500).json({
                 error: err
             });
         } else if (result) {
-            res.status(400).json({
+            res.status(409).json({
                 message: 'Product already exists'
             });
         } else {
             const product = new Product();
             product.name = req.body.name;
             product.price = req.body.price;
+            if (req.file && req.file.path) {
+                // console.log(req.file); gives the access to the file object
+                product.productImage = req.file.path;
+            }
 
             product.save((err, result) => {
                 if (err) {
@@ -49,13 +75,13 @@ router.post('/', (req, res) => {
                 }
             });
         }
-    })
+    });
 });
 
 // Getting single product
 router.get('/:productId', (req, res) => {
     const id = req.params.productId;
-    Product.findById(id, 'name price', (err, product) => {
+    Product.findById(id, '-__v', (err, product) => {
         if (err) {
             res.status(500).json({
                 error: err

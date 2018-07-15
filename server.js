@@ -7,12 +7,14 @@ const app = express();
 const port = process.env.PORT || 3001;
 const productRoute = require('./src/routes/productRoute');
 const orderRoute = require('./src/routes/orderRoute');
+const userRoute = require('./src/routes/userRoute');
 
 // Database Connection
 mongoose.connect('mongodb://localhost:27017/node-shop-app', { useNewUrlParser: true });
 
 // Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger('dev'));
@@ -34,6 +36,7 @@ app.get('/', (req, res) => {
 });
 app.use('/products', productRoute);
 app.use('/orders', orderRoute);
+app.use('/user', userRoute);
 
 // Error Handeling
 app.use((req, res, next) => {

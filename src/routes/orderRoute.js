@@ -22,7 +22,6 @@ router.get('/', (req, res) => {
                         return result.length
                     })[0]
                 });
-                console.log(result);
             }
         });
 });
