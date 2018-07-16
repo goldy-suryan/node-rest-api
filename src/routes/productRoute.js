@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const Product = require('../model/product');
 const verifyAuth = require('../auth/verify-auth');
+const products = require('../controllers/product');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads/');
@@ -27,118 +27,18 @@ const upload = multer({
 });
 
 // Getting all products
-router.get('/', (req, res) => {
-    Product.find({}, '-__v', (err, products) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (!products.length) {
-            res.status(200).json({
-                message: 'There are no products to show'
-            });
-        } else {
-            res.status(200).json(products);
-        }
-    })
-});
+router.get('/', products.getAllProducts);
 
 // Creating a product
-router.post('/', verifyAuth, upload.single('productImage'), (req, res) => {
-    Product.findOne({ name: req.body.name }, (err, result) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (result) {
-            res.status(409).json({
-                message: 'Product already exists'
-            });
-        } else {
-            const product = new Product();
-            product.name = req.body.name;
-            product.price = req.body.price;
-            if (req.file && req.file.path) {
-                // console.log(req.file); gives the access to the file object
-                product.productImage = req.file.path;
-            }
-
-            product.save((err, result) => {
-                if (err) {
-                    res.status(500).json({
-                        error: err
-                    });
-                } else {
-                    res.status(201).json({
-                        data: result,
-                        message: 'Product created successfully'
-                    });
-                }
-            });
-        }
-    });
-});
+router.post('/', verifyAuth, upload.single('productImage'), products.postingProduct);
 
 // Getting single product
-router.get('/:productId', (req, res) => {
-    const id = req.params.productId;
-    Product.findById(id, '-__v', (err, product) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (!product) {
-            res.status(404).json({
-                message: 'There are no products to show for provided ID'
-            });
-        } else {
-            res.status(200).json(product);
-        }
-    });
-});
+router.get('/:productId', products.gettingSingleProduct);
 
 // Updating a product
-router.patch('/:productId', verifyAuth, (req, res) => {
-    const id = req.params.productId;
-    const updateOps = {};
-    for (let key of Object.keys(req.body)) {
-        updateOps[key] = req.body[key];
-    }
-    Product.findByIdAndUpdate(id, { $set: updateOps }, (err, updatedProduct) => {
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-        } else if (!updatedProduct) {
-            res.status(404).json({
-                message: 'Unable to find the product to update'
-            });
-        } else {
-            res.status(200).json({
-                updatedProduct, message: 'Product updated successfully'
-            });
-        }
-    })
-});
+router.patch('/:productId', verifyAuth, products.updatingProduct);
 
 // Deleting a product
-router.delete('/:productId', verifyAuth, (req, res) => {
-    const id = req.params.productId;
-    Product.findByIdAndRemove(id, (err, response) => {
-        if (err) {
-            res.status(200).json({
-                error: err
-            });
-        } else if (!response) {
-            res.status(404).json({
-                message: 'Unable to find the product'
-            });
-        } else {
-            res.status(200).json({
-                response, message: 'Product deleted successfully'
-            });
-        }
-    })
-});
+router.delete('/:productId', verifyAuth, products.deletingProduct);
 
 module.exports = router;
