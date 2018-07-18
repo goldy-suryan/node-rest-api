@@ -2,9 +2,19 @@ const User = require('../model/user');
 const bcrypt = require('bcryptjs');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
+const validationSchema = require('../validation/validationSchema');
 
 const userCtl = {
     signup: (req, res) => {
+        req.checkBody(validationSchema.registrationSchema);
+        const errors = req.validationErrors();
+
+        if (errors) {
+            return res.status(500).json({
+                error: errors
+            });
+        }
+
         User.find({ email: req.body.email }, (err, result) => {
             if (err) {
                 res.status(500).json({
@@ -44,15 +54,30 @@ const userCtl = {
     },
 
     login: (req, res) => {
+        const delayResponse = resp => { // Basic security against brute force attack
+            setTimeout(() => {          // best way is to capture number of login attempts from same ip
+                resp();                 // and freeze the account for a day or so
+            }, 800);
+        };
+
+        req.checkBody(validationSchema.loginSchema);
+        const errors = req.validationErrors();
+
+        if (errors) {
+            return res.status(500).json({
+                error: errors
+            });
+        }
+
         User.findOne({ email: req.body.email }, (err, result) => {
             if (err) {
-                res.status(500).json({
+                return delayResponse(() => res.status(500).json({
                     error: err
-                });
+                }));
             } else if (!result) {
-                res.status(401).json({
+                return delayResponse(() => res.status(401).json({
                     message: 'Authorization failed'
-                });
+                }));
             } else {
                 bcrypt.compare(req.body.password, result.password)
                     .then(response => {
@@ -66,20 +91,20 @@ const userCtl = {
                                     expiresIn: '1h'
                                 }
                             );
-                            res.status(200).json({
+                            return delayResponse(() => res.status(200).json({
                                 message: 'Logged in successfully',
                                 token
-                            });
+                            }));
                         } else {
-                            res.status(401).json({
+                            return delayResponse(() => res.status(401).json({
                                 message: 'Authorization failed, password doesn\'t match'
-                            });
+                            }));
                         }
                     })
                     .catch(err => {
-                        res.status(500).json({
+                        return delayResponse(() => res.status(500).json({
                             error: err
-                        });
+                        }));
                     })
             }
         });

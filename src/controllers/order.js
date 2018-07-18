@@ -15,7 +15,6 @@ const orderCtl = {
                         message: 'No order placed till yet, place some order'
                     });
                 } else {
-                    console.log(result);
                     res.status(200).json({
                         result,
                         count: result.map(() => {

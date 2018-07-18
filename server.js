@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const logger = require('morgan');
 const mongoose = require('mongoose');
+const expressValidator = require('express-validator');
 const app = express();
 const port = process.env.PORT || 3001;
 const productRoute = require('./src/routes/productRoute');
@@ -16,6 +17,7 @@ mongoose.connect('mongodb://localhost:27017/node-shop-app', { useNewUrlParser: t
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(expressValidator())
 app.use(bodyParser.json());
 app.use(logger('dev'));
 
