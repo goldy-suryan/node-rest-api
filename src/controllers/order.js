@@ -10,7 +10,7 @@ const orderCtl = {
                     res.status(500).json({
                         error: err
                     });
-                } else if (!result) {
+                } else if (!result.length) {
                     res.status(200).json({
                         message: 'No order placed till yet, place some order'
                     });

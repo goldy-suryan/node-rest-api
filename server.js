@@ -11,13 +11,13 @@ const orderRoute = require('./src/routes/orderRoute');
 const userRoute = require('./src/routes/userRoute');
 
 // Database Connection
-mongoose.connect('mongodb://localhost:27017/node-shop-app', { useNewUrlParser: true });
+mongoose.connect('mongodb://node-shop:goldy123@ds257551.mlab.com:57551/node-shop-app', { useNewUrlParser: true });
 
 // Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(expressValidator())
+app.use(expressValidator());
 app.use(bodyParser.json());
 app.use(logger('dev'));
 

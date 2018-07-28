@@ -22,7 +22,9 @@ const userCtl = {
                 });
             } else if (result.length) {
                 res.status(409).json({
-                    message: 'Email already exists'
+                    error: {
+                        message: 'Email already exists'
+                    }
                 });
             } else {
                 bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
@@ -76,7 +78,9 @@ const userCtl = {
                 }));
             } else if (!result) {
                 return delayResponse(() => res.status(401).json({
-                    message: 'Authorization failed'
+                    error: {
+                        message: 'No user found with provided credentials'
+                    }
                 }));
             } else {
                 bcrypt.compare(req.body.password, result.password)
@@ -97,7 +101,9 @@ const userCtl = {
                             }));
                         } else {
                             return delayResponse(() => res.status(401).json({
-                                message: 'Authorization failed, password doesn\'t match'
+                                error: {
+                                    message: 'Authorization failed, password doesn\'t match'
+                                }
                             }));
                         }
                     })
