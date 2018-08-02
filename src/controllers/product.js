@@ -14,7 +14,15 @@ const productCtl = {
                     message: 'There are no products to show'
                 });
             } else {
-                res.status(200).json(products);
+                let newProduct = [];
+                products.forEach((item, index, arr) => {
+                    let product = item.toJSON();
+                    product['links'] = {};
+                    product.links['methods'] = 'GET, PATCH, DELETE';
+                    product.links['self'] = `http://${req.headers.host}/products/${item['_id']}`;
+                    newProduct.push(product);
+                })
+                res.status(200).json(newProduct);
             }
         })
     },
